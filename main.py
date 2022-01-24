@@ -70,13 +70,22 @@ try:
         print('== TCP: ==')
         src_port, dest_port, sequence, acknowledgment, offset_with_flags, window_size, checksum, urg = struct.unpack(
             '!HHLLHH2sH', after_ip_raw[:20])
+        tcp_header_len = (offset_with_flags >> 12) * 4
+
         print("source port:   ", src_port)
         print("dest port:     ", dest_port)
         print("sequence:      ", sequence)
         print("ack:           ", acknowledgment)
+        print("header length: ", tcp_header_len)
         print("window size:   ", window_size)
         print("checksum:      ", binascii.hexlify(checksum))
         print("urg:           ", urg)
+
+        after_tcp_raw = after_ip_raw[tcp_header_len:]
+
+        print('Payload:')
+        ascii_data = after_tcp_raw[:-4].decode('latin1')
+        print(ascii_data)
       if protocol == 17:
         print('== UDP: ==')
         udp_src_port, udp_dest_port, udp_len, udp_checksum = struct.unpack(
@@ -85,5 +94,7 @@ try:
         print("dest port:     ", udp_dest_port)
         print("length:        ", udp_len)
         print("checksum:      ", binascii.hexlify(udp_checksum))
+
+        after_udp_raw = after_ip_raw[udp_len:]
 except KeyboardInterrupt:
   raise SystemExit("Exiting...")
