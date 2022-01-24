@@ -41,16 +41,35 @@ try:
     elif eth_type == '0x800':
       print('== IP Header: ==')
       ip_raw = packet[0][14:34]
-      ip_header = struct.unpack("!B1s2s2s2s1sB2s4s4s", ip_raw)
+      ip_header = struct.unpack("!B1s2s2sH1sB2s4s4s", ip_raw)
       version = ip_header[0] >> 4
       ihl = (ip_header[0] & 15) * 4
       protocol = ip_header[6]
+
+      if ip_header[4] & 32768 == 32768:
+        zeroFlag = 1
+      else:
+        zeroFlag = 0
+
+      if ip_header[4] & 16384 == 16384:
+        dfFlag = 1
+      else:
+        dfFlag = 0
+
+      if ip_header[4] & 8192 == 8192:
+        mfFlag = 1
+      else:
+        mfFlag = 0
+
       print("Version:         ", version)
       print("IHL:             ", ihl)
       print("Service Type:    ", binascii.hexlify(ip_header[1]))
       print("Packet Length:   ", binascii.hexlify(ip_header[2]))
       print("Identification:  ", binascii.hexlify(ip_header[3]))
-      print("Flag+Frag.Offset:", binascii.hexlify(ip_header[4]))
+      print("Zero flag:       ", zeroFlag)
+      print("DF   flag:       ", dfFlag)
+      print("MF   flag:       ", mfFlag)
+      print("Fragment Offset: ", hex(ip_header[4] & 8191))
       print("TTL:             ", binascii.hexlify(ip_header[5]))
       print("Protocol:        ", protocol)
       print("Header Checksum: ", binascii.hexlify(ip_header[7]))
@@ -72,11 +91,50 @@ try:
             '!HHLLHH2sH', after_ip_raw[:20])
         tcp_header_len = (offset_with_flags >> 12) * 4
 
+        if offset_with_flags & 1 == 1:
+          finFlag = 1
+        else:
+          finFlag = 0
+
+        if offset_with_flags & 2 == 2:
+          synFlag = 1
+        else:
+          synFlag = 0
+
+        if offset_with_flags & 4 == 4:
+          rstFlag = 1
+        else:
+          rstFlag = 0
+
+        if offset_with_flags & 8 == 8:
+          pshFlag = 1
+        else:
+          pshFlag = 0
+
+        if offset_with_flags & 16 == 16:
+          ackFlag = 1
+        else:
+          ackFlag = 0
+
+        if offset_with_flags & 32 == 32:
+          urgFlag = 1
+        else:
+          urgFlag = 0
+
+        reserved = hex(offset_with_flags & 4032)
+
         print("source port:   ", src_port)
         print("dest port:     ", dest_port)
         print("sequence:      ", sequence)
         print("ack:           ", acknowledgment)
         print("header length: ", tcp_header_len)
+        print("reserved:      ", reserved)
+        print("FIN flag:      ", finFlag)
+        print("SYN flag:      ", synFlag)
+        print("RST flag:      ", rstFlag)
+        print("PSH flag:      ", pshFlag)
+        print("ACK flag:      ", ackFlag)
+        print("URG flag:      ", urgFlag)
         print("window size:   ", window_size)
         print("checksum:      ", binascii.hexlify(checksum))
         print("urg:           ", urg)
