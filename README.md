@@ -31,6 +31,8 @@ Run on Ubuntu
 In this section various parts of the code is inspected.
 
 ### Initial Logic
+
+``` python
     import socket
     
     import struct
@@ -56,10 +58,12 @@ In this section various parts of the code is inspected.
     if eth_type != '0x800' and eth_type != '0x0806':
     
 	    continue
+```
 
 Packets are received and various parts of the ethernet header is extracted, if ethernet type field is not ARP or IP the packet will not be processed by this tool.
 
 ### Print Ethernet header fields
+``` python
     print('== Ethernet Header: ==')
     
     print("Destination MAC: ")
@@ -73,10 +77,10 @@ Packets are received and various parts of the ethernet header is extracted, if e
     print('Type: ')
     
     print(eth_type)
-
+```
 The fields we extracted from the ethernet header in the last section will be printed.
 ### ARP Header
-
+``` python
     if eth_type == '0x0806':
     
 	    arp_raw = packet[0][14:42]
@@ -102,11 +106,11 @@ The fields we extracted from the ethernet header in the last section will be pri
 	    print("Dest MAC: ", binascii.hexlify(arp_header[7]))
     
 	    print("Dest IP: ", socket.inet_ntoa(arp_header[8]))
-
+```
 If ARP protocol is used (again, checked using ethernet_type in the Ethernet header) extract the fields and print them to console.
 
 ## IP Protocol
-
+``` python
     elif eth_type == '0x800':
     
 	    print('== IP Header: ==')
@@ -120,11 +124,11 @@ If ARP protocol is used (again, checked using ethernet_type in the Ethernet head
 	    ihl = (ip_header[0] & 15) * 4
     
 	    protocol = ip_header[6]
-
+```
 If IP is being used then extract the fields from the IP header.
 
 #### IP Flags
-
+``` python
     if ip_header[4] & 32768 == 32768:
     
 	    zeroFlag = 1
@@ -148,11 +152,11 @@ If IP is being used then extract the fields from the IP header.
     else:
     
 	    mfFlag = 0
-
+```
 This code extracts the IP flag values.
 
 #### Printing the IP header fields
-
+``` python
     print("Version: ", version)
     
     print("IHL: ", ihl)
@@ -182,171 +186,173 @@ This code extracts the IP flag values.
     print("Destination IP: ", socket.inet_ntoa(ip_header[9]))
     
     after_ip_raw = packet[0][14+ihl:]
-
+```
 The fields are printed and the raw data that comes after the IP header is saved to a variable to be used later on
 
 ### ICMP
 Based on the IP Header fields, more specifically the protocol field we detect if ICMP is being used.
-
-    if protocol == 1:
+``` python
+if protocol == 1:
     
-	    print('== ICMP: ==')
+	print('== ICMP: ==')
     
-	    icmp_raw = after_ip_raw[:4]
+	icmp_raw = after_ip_raw[:4]
     
-	    icmp_type, code, checksum = struct.unpack('!BBH', icmp_raw)
+	icmp_type, code, checksum = struct.unpack('!BBH', icmp_raw)
     
-	    print("type: ", icmp_type)
+	print("type: ", icmp_type)
     
-	    print("code: ", code)
+	print("code: ", code)
     
-	    print("checksum: ", checksum)
-
+	print("checksum: ", checksum)
+```
 We extract the fields and print them to the console.
 
 ### TCP 
 Based on the IP Header fields, more specifically the protocol field we detect if TCP is being used.
-
-    if protocol == 6:
+``` python
+if protocol == 6:
     
-	    print('== TCP: ==')
+	print('== TCP: ==')
 	    
-	    src_port, dest_port, sequence, acknowledgment, offset_with_flags, window_size, checksum, urg = struct.unpack(
+	src_port, dest_port, sequence, acknowledgment, offset_with_flags, window_size, checksum, urg = struct.unpack(
 	    
-	    '!HHLLHH2sH', after_ip_raw[:20])
+	'!HHLLHH2sH', after_ip_raw[:20])
 	    
-	    tcp_header_len = (offset_with_flags >> 12) * 4
-
+	tcp_header_len = (offset_with_flags >> 12) * 4
+```
 The TCP header fields are extracted.
 
 #### Flags
-
-    if offset_with_flags & 1 == 1:
+``` python
+if offset_with_flags & 1 == 1:
     
-	    finFlag = 1
+	finFlag = 1
     
-    else:
+else:
     
-	    finFlag = 0
+	finFlag = 0
     
-    if offset_with_flags & 2 == 2:
+if offset_with_flags & 2 == 2:
     
-	    synFlag = 1
+	synFlag = 1
     
-    else:
+else:
     
-	    synFlag = 0
+	synFlag = 0
     
-    if offset_with_flags & 4 == 4:
+if offset_with_flags & 4 == 4:
     
-	    rstFlag = 1
+	rstFlag = 1
     
-    else:
+else:
     
-	    rstFlag = 0
+	rstFlag = 0
     
-    if offset_with_flags & 8 == 8:
+if offset_with_flags & 8 == 8:
     
-	    pshFlag = 1
+	pshFlag = 1
     
-    else:
+else:
     
-	    pshFlag = 0
+	pshFlag = 0
     
-    if offset_with_flags & 16 == 16:
+if offset_with_flags & 16 == 16:
     
-	    ackFlag = 1
+	ackFlag = 1
     
-    else:
+else:
     
-	    ackFlag = 0
+	ackFlag = 0
     
-    if offset_with_flags & 32 == 32:
+if offset_with_flags & 32 == 32:
     
-	    urgFlag = 1
+	urgFlag = 1
     
-    else:
+else:
     
-	    urgFlag = 0
+	urgFlag = 0
     
-    reserved = hex(offset_with_flags & 4032)
-
+reserved = hex(offset_with_flags & 4032)
+```
 Extracting the TCP header flags and the reserved field in the TCP header.
 
 #### Printing the tcp header fields
-
-    print("source port: ", src_port)
+``` python
+print("source port: ", src_port)
     
-    print("dest port: ", dest_port)
+print("dest port: ", dest_port)
     
-    print("sequence: ", sequence)
+print("sequence: ", sequence)
     
-    print("ack: ", acknowledgment)
+print("ack: ", acknowledgment)
     
-    print("header length: ", tcp_header_len)
+print("header length: ", tcp_header_len)
     
-    print("reserved: ", reserved)
+print("reserved: ", reserved)
     
-    print("FIN flag: ", finFlag)
+print("FIN flag: ", finFlag)
     
-    print("SYN flag: ", synFlag)
+print("SYN flag: ", synFlag)
     
-    print("RST flag: ", rstFlag)
+print("RST flag: ", rstFlag)
     
-    print("PSH flag: ", pshFlag)
+print("PSH flag: ", pshFlag)
     
-    print("ACK flag: ", ackFlag)
+print("ACK flag: ", ackFlag)
     
-    print("URG flag: ", urgFlag)
+print("URG flag: ", urgFlag)
     
-    print("window size: ", window_size)
+print("window size: ", window_size)
     
-    print("checksum: ", binascii.hexlify(checksum))
+print("checksum: ", binascii.hexlify(checksum))
     
-    print("urg: ", urg)
+print("urg: ", urg)
     
-    after_tcp_raw = after_ip_raw[tcp_header_len:]
-
+after_tcp_raw = after_ip_raw[tcp_header_len:]
+```
 The fields are printed to console and the raw data that comes after the TCP section is prepared for later use.
 
 ### HTTP AND SSL
-
-    print('Payload:')
+``` python
+print('Payload:')
     
-    ascii_data = after_tcp_raw[:-4].decode('latin1')
+ascii_data = after_tcp_raw[:-4].decode('latin1')
     
-    print(ascii_data)
-
+print(ascii_data)
+```
 The bytes in the application layer section (the trailer is removed) is converted to text (not necessarily ascii, ascii was used as the variable name to meant text data) and printed to the console.
 There is no accurate way to detect if this data is HTTP.
 One could for example search for 'HTML' in the text but that would not be totally accurate.
 SSL is an encrypted version of HTTP. (AKA Https)
 ### UDP
-
-    if protocol == 17:
+``` python
+if protocol == 17:
     
-	    print('== UDP: ==')
+	print('== UDP: ==')
 	    
-	    udp_src_port, udp_dest_port, udp_len, udp_checksum = struct.unpack(
+	udp_src_port, udp_dest_port, udp_len, udp_checksum = struct.unpack(
 	    
-	    '!HHH2s', after_ip_raw[:8])
+	'!HHH2s', after_ip_raw[:8])
 	    
-	    print("source port: ", udp_src_port)
+	print("source port: ", udp_src_port)
 	    
-	    print("dest port: ", udp_dest_port)
+	print("dest port: ", udp_dest_port)
 	    
-	    print("length: ", udp_len)
+	print("length: ", udp_len)
 	    
-	    print("checksum: ", binascii.hexlify(udp_checksum))
+	print("checksum: ", binascii.hexlify(udp_checksum))
 	    
-	    after_udp_raw = after_ip_raw[udp_len:]
+	after_udp_raw = after_ip_raw[udp_len:]
+```
 If the protocol is UDP, the UDP header fields are extracted and printed to console.
 The raw data after the UDP section is saved to a variable but not used. 
 Further than this is out of scope of this project, maybe in another project this variable could be used.. :)
 
 ### Final Code
-
-    except KeyboardInterrupt:
+``` python
+except KeyboardInterrupt:
     
-    raise SystemExit("Exiting...")
+raise SystemExit("Exiting...")
+```
 This code would be executed when *Ctrl + C* is used to end the tool.
