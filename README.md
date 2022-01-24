@@ -353,6 +353,6 @@ Further than this is out of scope of this project, maybe in another project this
 ``` python
 except KeyboardInterrupt:
     
-raise SystemExit("Exiting...")
+	raise SystemExit("Exiting...")
 ```
 This code would be executed when *Ctrl + C* is used to end the tool.
