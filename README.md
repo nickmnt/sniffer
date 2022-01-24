@@ -14,13 +14,15 @@ The goal is to sniff packets in the network and show packet information such as 
 <br />
  <center>
 <img style="width: 10rem;height:10rem; margin-right: 2rem" src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Python-logo-notext.svg/300px-Python-logo-notext.svg.png" />
- <img style="width: 10rem;height:10rem" src="https://www.pngplay.com/wp-content/uploads/13/Ubuntu-Transparent-Images.png"/>
-
 </center>
 <br />
 <p align="center" style="font-size: 1.6rem; font-weight: 600">
 Made with python 3
 </p>
+ <center>
+  <img style="width: 10rem;height:10rem" src="https://www.pngplay.com/wp-content/uploads/13/Ubuntu-Transparent-Images.png"/>
+</center>
+<br />
 <p align="center" style="font-size: 1.6rem; font-weight: 600">
 Run on Ubuntu
 </p>
