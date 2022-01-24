@@ -22,11 +22,11 @@ try:
     print(binascii.hexlify(eth_header[0]))
     print("Source MAC:        ")
     print(binascii.hexlify(eth_header[1]))
-    print("Type:              " )
     print(binascii.hexlify(eth_type))
-    print()
+    
+    eth_type_str = binascii.hexlify(eth_type).decode("utf-8")
 
-    if eth_type == '\x08\x06':
+    if eth_type_str == '0806':
       arp_raw = packet[0][14:42]
       arp_header = struct.unpack("2s2s1s1s2s6s4s6s4s", arp_raw)
       print('== Arp Header: ==')
@@ -42,8 +42,16 @@ try:
     else:
       print('== IP Header: ==')
       ipheader = packet[0][14:34]
-      ip_header = struct.unpack("!12s4s4s", ipheader)
-      print("Source IP:       ", socket.inet_ntoa(ip_header[1]))
-      print("Destination IP:  ", socket.inet_ntoa(ip_header[2]))
+      ip_header = struct.unpack("!1s1s2s2s2s1s1s2s4s4s", ipheader)
+      print("IHL:             ", binascii.hexlify(ip_header[0]))
+      print("Service Type:    ", binascii.hexlify(ip_header[1]))
+      print("Packet Length:   ", binascii.hexlify(ip_header[2]))
+      print("Identification:  ", binascii.hexlify(ip_header[3]))
+      print("Flag+Frag.Offset:", binascii.hexlify(ip_header[4]))
+      print("TTL:             ", binascii.hexlify(ip_header[5]))
+      print("Protocol:        ", binascii.hexlify(ip_header[6]))
+      print("Header Checksum: ", binascii.hexlify(ip_header[7]))
+      print("Source IP:       ", socket.inet_ntoa(ip_header[8]))
+      print("Destination IP:  ", socket.inet_ntoa(ip_header[9]))
 except KeyboardInterrupt:
   raise SystemExit("Exiting...")
