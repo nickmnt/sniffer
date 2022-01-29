@@ -1,3 +1,7 @@
+<p align="center" style="font-size: 1.6rem; font-weight: 600">
+<img src="https://staticdelivery.nexusmods.com/mods/1151/images/thumbnails/16088-0-1467809364.png"/>
+</p>
+
 # <span style="color:#007FFF">Packet Sniffer project</span>
 This project is the second project for my university's networking course.
 ## <span style="color:#007FFF">Introduction</span>
@@ -33,159 +37,159 @@ In this section various parts of the code is inspected.
 ### Initial Logic
 
 ``` python
-    import socket
+import socket
     
-    import struct
+import struct
     
-    import binascii
+import binascii
     
-    s = socket.socket(socket.PF_PACKET, socket.SOCK_RAW, socket.ntohs(3))
+s = socket.socket(socket.PF_PACKET, socket.SOCK_RAW, socket.ntohs(3))
     
-    try:
+try:
     
-    print("Packet sniffer project, Student # 9822762211")
+print("Packet sniffer project, Student # 9822762211")
     
-    while True:
+while True:
     
-    packet = s.recvfrom(65565)
+packet = s.recvfrom(65565)
     
-    ethernet_raw = packet[0][0:14]
+ethernet_raw = packet[0][0:14]
     
-    eth_header = struct.unpack("!6s6sH", ethernet_raw)
+eth_header = struct.unpack("!6s6sH", ethernet_raw)
     
-    eth_type = hex(eth_header[2])
+eth_type = hex(eth_header[2])
     
-    if eth_type != '0x800' and eth_type != '0x0806':
+if eth_type != '0x800' and eth_type != '0x0806':
     
-	    continue
+	continue
 ```
 
 Packets are received and various parts of the ethernet header is extracted, if ethernet type field is not ARP or IP the packet will not be processed by this tool.
 
 ### Print Ethernet header fields
 ``` python
-    print('== Ethernet Header: ==')
+print('== Ethernet Header: ==')
     
-    print("Destination MAC: ")
+print("Destination MAC: ")
     
-    print(binascii.hexlify(eth_header[0]))
+print(binascii.hexlify(eth_header[0]))
     
-    print("Source MAC: ")
+print("Source MAC: ")
     
-    print(binascii.hexlify(eth_header[1]))
+print(binascii.hexlify(eth_header[1]))
     
-    print('Type: ')
+print('Type: ')
     
-    print(eth_type)
+print(eth_type)
 ```
 The fields we extracted from the ethernet header in the last section will be printed.
 ### ARP Header
 ``` python
-    if eth_type == '0x0806':
+if eth_type == '0x0806':
     
-	    arp_raw = packet[0][14:42]
+	arp_raw = packet[0][14:42]
     
-	    arp_header = struct.unpack("2s2s1s1s2s6s4s6s4s", arp_raw)
+	arp_header = struct.unpack("2s2s1s1s2s6s4s6s4s", arp_raw)
     
-	    print('== Arp Header: ==')
+	print('== Arp Header: ==')
     
-	    print("Hardware type: ", binascii.hexlify(arp_header[0]))
+	print("Hardware type: ", binascii.hexlify(arp_header[0]))
     
-	    print("Protocol type: ", binascii.hexlify(arp_header[1]))
+	print("Protocol type: ", binascii.hexlify(arp_header[1]))
     
-	    print("Hardware size: ", binascii.hexlify(arp_header[2]))
+	print("Hardware size: ", binascii.hexlify(arp_header[2]))
     
-	    print("Protocol size: ", binascii.hexlify(arp_header[3]))
+	print("Protocol size: ", binascii.hexlify(arp_header[3]))
     
-	    print("Opcode: ", binascii.hexlify(arp_header[4]))
+	print("Opcode: ", binascii.hexlify(arp_header[4]))
     
-	    print("Source MAC: ", binascii.hexlify(arp_header[5]))
+	print("Source MAC: ", binascii.hexlify(arp_header[5]))
     
-	    print("Source IP: ", socket.inet_ntoa(arp_header[6]))
+	print("Source IP: ", socket.inet_ntoa(arp_header[6]))
     
-	    print("Dest MAC: ", binascii.hexlify(arp_header[7]))
+	print("Dest MAC: ", binascii.hexlify(arp_header[7]))
     
-	    print("Dest IP: ", socket.inet_ntoa(arp_header[8]))
+	print("Dest IP: ", socket.inet_ntoa(arp_header[8]))
 ```
 If ARP protocol is used (again, checked using ethernet_type in the Ethernet header) extract the fields and print them to console.
 
 ## IP Protocol
 ``` python
-    elif eth_type == '0x800':
+elif eth_type == '0x800':
     
-	    print('== IP Header: ==')
+	print('== IP Header: ==')
     
-	    ip_raw = packet[0][14:34]
+	ip_raw = packet[0][14:34]
     
-	    ip_header = struct.unpack("!B1s2s2sH1sB2s4s4s", ip_raw)
-    
-	    version = ip_header[0] >> 4
-    
-	    ihl = (ip_header[0] & 15) * 4
-    
-	    protocol = ip_header[6]
+	ip_header = struct.unpack("!B1s2s2sH1sB2s4s4s", ip_raw)
+
+	version = ip_header[0] >> 4
+
+	ihl = (ip_header[0] & 15) * 4
+
+	protocol = ip_header[6]
 ```
 If IP is being used then extract the fields from the IP header.
 
 #### IP Flags
 ``` python
-    if ip_header[4] & 32768 == 32768:
+if ip_header[4] & 32768 == 32768:
     
-	    zeroFlag = 1
+	zeroFlag = 1
     
-    else:
+else:
     
-	    zeroFlag = 0
+	zeroFlag = 0
     
-    if ip_header[4] & 16384 == 16384:
+if ip_header[4] & 16384 == 16384:
     
-	    dfFlag = 1
+	dfFlag = 1
     
-    else:
+else:
     
-	    dfFlag = 0
+	dfFlag = 0
     
-    if ip_header[4] & 8192 == 8192:
+if ip_header[4] & 8192 == 8192:
     
-	    mfFlag = 1
+	mfFlag = 1
     
-    else:
+else:
     
-	    mfFlag = 0
+	mfFlag = 0
 ```
 This code extracts the IP flag values.
 
 #### Printing the IP header fields
 ``` python
-    print("Version: ", version)
+print("Version: ", version)
     
-    print("IHL: ", ihl)
+print("IHL: ", ihl)
     
-    print("Service Type: ", binascii.hexlify(ip_header[1]))
+print("Service Type: ", binascii.hexlify(ip_header[1]))
     
-    print("Packet Length: ", binascii.hexlify(ip_header[2]))
+print("Packet Length: ", binascii.hexlify(ip_header[2]))
     
-    print("Identification: ", binascii.hexlify(ip_header[3]))
+print("Identification: ", binascii.hexlify(ip_header[3]))
     
-    print("Zero flag: ", zeroFlag)
+print("Zero flag: ", zeroFlag)
     
-    print("DF flag: ", dfFlag)
+print("DF flag: ", dfFlag)
     
-    print("MF flag: ", mfFlag)
+print("MF flag: ", mfFlag)
     
-    print("Fragment Offset: ", hex(ip_header[4] & 8191))
+print("Fragment Offset: ", hex(ip_header[4] & 8191))
     
-    print("TTL: ", binascii.hexlify(ip_header[5]))
+print("TTL: ", binascii.hexlify(ip_header[5]))
     
-    print("Protocol: ", protocol)
+print("Protocol: ", protocol)
     
-    print("Header Checksum: ", binascii.hexlify(ip_header[7]))
+print("Header Checksum: ", binascii.hexlify(ip_header[7]))
     
-    print("Source IP: ", socket.inet_ntoa(ip_header[8]))
+print("Source IP: ", socket.inet_ntoa(ip_header[8]))
     
-    print("Destination IP: ", socket.inet_ntoa(ip_header[9]))
+print("Destination IP: ", socket.inet_ntoa(ip_header[9]))
     
-    after_ip_raw = packet[0][14+ihl:]
+after_ip_raw = packet[0][14+ihl:]
 ```
 The fields are printed and the raw data that comes after the IP header is saved to a variable to be used later on
 
@@ -315,16 +319,21 @@ The fields are printed to console and the raw data that comes after the TCP sect
 
 ### HTTP AND SSL
 ``` python
+if src_port == 443 or dest_port == 443:
+	print(bcolors.OKGREEN + '== SSL: ==' + bcolors.ENDC)
+if src_port == 80 or dest_port == 80:
+	print(bcolors.OKGREEN + '== HTTP: ==' + bcolors.ENDC)
+        
 print('Payload:')
-    
-ascii_data = after_tcp_raw[:-4].decode('latin1')
-    
-print(ascii_data)
+text_data = after_tcp_raw[:-4].decode('latin1')
+print(text_data)
 ```
-The bytes in the application layer section (the trailer is removed) is converted to text (not necessarily ascii, ascii was used as the variable name to meant text data) and printed to the console.
-There is no accurate way to detect if this data is HTTP.
+HTTP use is detected.
+SSL use is detected.
+The bytes in the application layer section (the trailer is removed) is converted to text and printed to the console.
+There is no accurate way to detect if this data is HTTP or SSL other than the port (80 for HTML, 443 for HTTPS/SSL).
 One could for example search for 'HTML' in the text but that would not be totally accurate.
-SSL is an encrypted version of HTTP. (AKA Https)
+SSL is an encrypted version of HTTP. (AKA HTTPS)
 ### UDP
 ``` python
 if protocol == 17:
