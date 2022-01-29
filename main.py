@@ -2,6 +2,17 @@ import socket
 import struct
 import binascii
 
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
 s = socket.socket(socket.PF_PACKET, socket.SOCK_RAW, socket.ntohs(3))
 
 try: 
@@ -17,7 +28,7 @@ try:
     if eth_type != '0x800' and eth_type != '0x0806':
       continue
 
-    print('== Ethernet Header: ==')
+    print(bcolors.OKGREEN + '== Ethernet Header: ==' + bcolors.ENDC)
     print("Destination MAC:   ")
     print(binascii.hexlify(eth_header[0]))
     print("Source MAC:        ")
@@ -39,7 +50,7 @@ try:
       print("Dest MAC:        ", binascii.hexlify(arp_header[7]))
       print("Dest IP:         ", socket.inet_ntoa(arp_header[8]))
     elif eth_type == '0x800':
-      print('== IP Header: ==')
+      print(bcolors.OKGREEN + '== IP Header: ==' + bcolors.ENDC)
       ip_raw = packet[0][14:34]
       ip_header = struct.unpack("!B1s2s2sH1sB2s4s4s", ip_raw)
       version = ip_header[0] >> 4
@@ -79,14 +90,14 @@ try:
       after_ip_raw = packet[0][14+ihl:]
       
       if protocol == 1:
-        print('== ICMP: ==')
+        print(bcolors.OKGREEN + '== ICMP: =='  + bcolors.ENDC)
         icmp_raw = after_ip_raw[:4]
         icmp_type, code, checksum = struct.unpack('!BBH', icmp_raw)
         print("type:          ", icmp_type)
         print("code:          ", code)
         print("checksum:      ", checksum)
       if protocol == 6:
-        print('== TCP: ==')
+        print(bcolors.OKGREEN + '== TCP: =='  + bcolors.ENDC)
         src_port, dest_port, sequence, acknowledgment, offset_with_flags, window_size, checksum, urg = struct.unpack(
             '!HHLLHH2sH', after_ip_raw[:20])
         tcp_header_len = (offset_with_flags >> 12) * 4
@@ -141,11 +152,16 @@ try:
 
         after_tcp_raw = after_ip_raw[tcp_header_len:]
 
+        if src_port == 443 or dest_port == 443:
+          print(bcolors.OKGREEN + '== SSL: ==' + bcolors.ENDC)
+        if src_port == 80 or dest_port == 80:
+          print(bcolors.OKGREEN + '== HTTP: ==' + bcolors.ENDC)
+        
         print('Payload:')
-        ascii_data = after_tcp_raw[:-4].decode('latin1')
-        print(ascii_data)
+        text_data = after_tcp_raw[:-4].decode('latin1')
+        print(text_data)
       if protocol == 17:
-        print('== UDP: ==')
+        print(bcolors.OKGREEN + '== UDP: =='  + bcolors.ENDC)
         udp_src_port, udp_dest_port, udp_len, udp_checksum = struct.unpack(
             '!HHH2s', after_ip_raw[:8])
         print("source port:   ", udp_src_port)
@@ -154,5 +170,7 @@ try:
         print("checksum:      ", binascii.hexlify(udp_checksum))
 
         after_udp_raw = after_ip_raw[udp_len:]
+
+      print('**************************')
 except KeyboardInterrupt:
   raise SystemExit("Exiting...")
