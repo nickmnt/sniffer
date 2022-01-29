@@ -39,7 +39,7 @@ try:
     if eth_type == '0x0806':
       arp_raw = packet[0][14:42]
       arp_header = struct.unpack("2s2s1s1s2s6s4s6s4s", arp_raw)
-      print('== Arp Header: ==')
+      print(bcolors.OKGREEN + '== Arp Header: =='  + bcolors.ENDC)
       print("Hardware type:   ", binascii.hexlify(arp_header[0]))
       print("Protocol type:   ", binascii.hexlify(arp_header[1]))
       print("Hardware size:   ", binascii.hexlify(arp_header[2]))
